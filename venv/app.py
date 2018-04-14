@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import image_segmentation
+import cv2
+import urllib
+import numpy as np
 
 app = Flask(__name__)
 CORS(app)
@@ -11,12 +13,24 @@ def welcome():
 
 @app.route("/v1/images", methods=['POST'])
 def test_post():
-    age = request.args.get('age')
-    name = request.args.get('name')
+    request_url = request.args.get('image')
+    image_url = urllib.request.urlopen(request_url)
+    image_array = np.asarray(bytearray(image_url.read()), dtype=np.uint8)
+    img = cv2.imdecode(image_array, -1) # This is now an image file
+
+    edged = cv2.Canny(img, 30, 200)
+    _, contours, _= cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    x,y,w,h = cv2.boundingRect(contours[1])
+    cv2.rectangle(img,(x,y),(x+w,y+h), (0,255,0), 2)
+
+    cv2.imwrite("segment.jpg", segment)
+
+    print(type(segment))
+
 
     response = {
-        "age": age,
-        "name": name,
+        "image": len(contours)
     }
 
     return jsonify(response)
