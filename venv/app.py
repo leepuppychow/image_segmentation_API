@@ -7,7 +7,7 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/v1/")
+@app.route("/v1")
 def welcome():
     return "Welcome to image segmentation"
 
@@ -16,18 +16,20 @@ def test_post():
     request_url = request.args.get('image')
     image_url = urllib.request.urlopen(request_url)
     image_array = np.asarray(bytearray(image_url.read()), dtype=np.uint8)
-    img = cv2.imdecode(image_array, -1) # This is now an image file
+    img = cv2.imdecode(image_array, 0) # This is now an image file
 
-    edged = cv2.Canny(img, 30, 200)
-    _, contours, _= cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    edges = cv2.Canny(img, 125, 200) # (image_source, minVal, maxVal) for Canny edge detection
 
-    x,y,w,h = cv2.boundingRect(contours[1])
+    _, contours, _= cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Sort the contours by area and take the largest ones? 
+    contours = sorted(contours, key = cv2.contourArea, reverse = True)[:6]
+
+    x,y,w,h = cv2.boundingRect(contours[0])
     cv2.rectangle(img,(x,y),(x+w,y+h), (0,255,0), 2)
 
+    segment = img[y:y+h, x:x+w]
     cv2.imwrite("segment.jpg", segment)
-
-    print(type(segment))
-
 
     response = {
         "image": len(contours)
