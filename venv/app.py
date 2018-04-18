@@ -18,18 +18,20 @@ def test_post():
     image_array = np.asarray(bytearray(image_url.read()), dtype=np.uint8)
     img = cv2.imdecode(image_array, 0) # This is now an image file
 
-    edges = cv2.Canny(img, 125, 200) # (image_source, minVal, maxVal) for Canny edge detection
+    edges = cv2.Canny(img, 30, 200)
 
-    _, contours, _= cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Sort the contours by area and take the largest ones? 
-    contours = sorted(contours, key = cv2.contourArea, reverse = True)[:6]
+    contours = sorted(contours, key = cv2.contourArea, reverse = True)[:5]
 
-    x,y,w,h = cv2.boundingRect(contours[0])
-    cv2.rectangle(img,(x,y),(x+w,y+h), (0,255,0), 2)
-
-    segment = img[y:y+h, x:x+w]
-    cv2.imwrite("segment.jpg", segment)
+    i = 0
+    for contour in contours:
+        i = i + 1
+        x,y,w,h = cv2.boundingRect(contour)
+        segment = img[y:y+h, x:x+w]
+        filename = "segment" + str(i) + ".jpg"
+        cv2.imwrite(filename, segment)
+        cv2.imshow(filename, segment)
 
     response = {
         "image": len(contours)
