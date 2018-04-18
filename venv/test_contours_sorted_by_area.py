@@ -1,9 +1,7 @@
-import cv2
-import numpy as np
-
-img = cv2.imread('photo_YAHHH.jpg', 0)
-img = cv2.resize(img, None, fx=0.25, fy=0.25)
-cv2.imshow("Greyscale original", img)
+request_url = request.args.get('image')
+image_url = urllib.request.urlopen(request_url)
+image_array = np.asarray(bytearray(image_url.read()), dtype=np.uint8)
+img = cv2.imdecode(image_array, 0) # This is now an image file
 
 edges = cv2.Canny(img, 30, 200)
 
@@ -18,4 +16,10 @@ for contour in contours:
     segment = img[y:y+h, x:x+w]
     filename = "segment" + str(i) + ".jpg"
     cv2.imwrite(filename, segment)
-    cv2.imshow(filename, segment) 
+    cv2.imshow(filename, segment)
+
+response = {
+    "image": len(contours)
+}
+
+return jsonify(response)

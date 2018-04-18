@@ -16,7 +16,7 @@ def test_post():
     request_url = request.args.get('image')
     image_url = urllib.request.urlopen(request_url)
     image_array = np.asarray(bytearray(image_url.read()), dtype=np.uint8)
-    img = cv2.imdecode(image_array, 0) # This is now an image file
+    img = cv2.imdecode(image_array, 0)
 
     edges = cv2.Canny(img, 30, 200)
 
@@ -31,10 +31,5 @@ def test_post():
         segment = img[y:y+h, x:x+w]
         filename = "segment" + str(i) + ".jpg"
         cv2.imwrite(filename, segment)
-        cv2.imshow(filename, segment)
 
-    response = {
-        "image": len(contours)
-    }
-
-    return jsonify(response)
+    return "Image was segmented with " + str(len(contours)) + " segments"
